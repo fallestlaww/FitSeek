@@ -9,10 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class FitseekApplication {
 
     public static void main(String[] args) {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String rawPassword = "test";
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-        System.out.println("Хеш пароля: " + encodedPassword);
         SpringApplication.run(FitseekApplication.class, args);
     }
 
