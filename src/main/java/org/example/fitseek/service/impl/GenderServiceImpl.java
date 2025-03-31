@@ -1,5 +1,6 @@
 package org.example.fitseek.service.impl;
 
+import org.example.fitseek.dto.request.GenderRequest;
 import org.example.fitseek.model.Gender;
 import org.example.fitseek.repository.GenderRepository;
 import org.example.fitseek.service.GenderService;
@@ -12,11 +13,11 @@ public class GenderServiceImpl implements GenderService {
     private GenderRepository genderRepository;
 
     @Override
-    public Gender chooseGender(String gender) {
-        Gender foundGender = genderRepository.findByName(gender);
+    public Gender chooseGender(GenderRequest genderRequest) {
+        Gender foundGender = genderRepository.findByName(genderRequest.getName());
         if (foundGender == null) {
-            throw new NullPointerException("Gender not found: " + gender);
+            throw new NullPointerException("Gender not found: " + genderRequest.getName());
         }
-        return genderRepository.findByName(gender);
+        return genderRepository.findByName(genderRequest.getName());
     }
 }
