@@ -1,21 +1,24 @@
 package org.example.fitseek.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
+@Entity
+@Table(name = "training_type")
 @Getter
 @Setter
-@Entity
-@Table(name = "gender")
-public class Gender {
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrainingType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
     private Long id;
     private String name;
 
@@ -23,8 +26,8 @@ public class Gender {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Gender gender = (Gender) o;
-        return Objects.equals(id, gender.id) && Objects.equals(name, gender.name);
+        TrainingType that = (TrainingType) o;
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name);
     }
 
     @Override

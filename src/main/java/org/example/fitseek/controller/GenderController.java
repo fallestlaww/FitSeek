@@ -1,5 +1,6 @@
 package org.example.fitseek.controller;
 
+import org.example.fitseek.dto.request.GenderRequest;
 import org.example.fitseek.model.Gender;
 import org.example.fitseek.service.GenderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,15 +20,15 @@ public class GenderController {
     private GenderService genderService;
 
     @PostMapping
-    public ResponseEntity<?> selectGender(@RequestBody String gender) {
+    public ResponseEntity<?> selectGender(@RequestBody GenderRequest genderRequest) {
         try {
-            Gender choosenGender = genderService.chooseGender(gender);
-            if (choosenGender.getName().equals("Male")) {
+            Gender choosenGender = genderService.chooseGender(genderRequest);
+            if (choosenGender.getName().equalsIgnoreCase("Male")) {
                 return ResponseEntity.status(HttpStatus.FOUND)
                         .location(URI.create("/male-training"))
                         .build();
             }
-            if (choosenGender.getName().equals("Female")) {
+            if (choosenGender.getName().equalsIgnoreCase("Female")) {
                 return ResponseEntity.status(HttpStatus.FOUND)
                         .location(URI.create("/female-training"))
                         .build();
