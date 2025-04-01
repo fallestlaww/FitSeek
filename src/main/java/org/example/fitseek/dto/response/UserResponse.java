@@ -9,7 +9,7 @@ import org.example.fitseek.model.User;
 @Value
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserResponse {
-    long id;
+    Long id;
     String name;
     String email;
     int age;

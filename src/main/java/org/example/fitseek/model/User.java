@@ -38,7 +38,7 @@ public class User implements UserDetails {
     private int height;
     private int weight;
     @ManyToOne
-    @JoinColumn(name = "gender_id")
+    @JoinColumn(name = "gender_id", referencedColumnName = "id")
     private Gender gender;
     @ManyToOne
     @JoinColumn(name = "role_id")

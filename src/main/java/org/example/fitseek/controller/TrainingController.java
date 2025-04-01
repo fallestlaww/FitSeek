@@ -63,7 +63,7 @@ public class TrainingController {
     public ResponseEntity<?> splitTrainingMale(@RequestBody UserInformationRequest userInformationRequest) {
         try {
             List<Exercise> exercises = exerciseService.exerciseListForSplit(userInformationRequest.getAge(), userInformationRequest.getWeight(),
-                    userInformationRequest.getHeight(), 1);
+                    userInformationRequest.getHeight(), 1L);
             List<ExerciseResponse> exerciseResponses = new ArrayList<>();
             for(Exercise exercise : exercises) {
                 ExerciseResponse exerciseResponse = new ExerciseResponse(exercise);
@@ -79,7 +79,7 @@ public class TrainingController {
     public ResponseEntity<?> splitTrainingFemale(@RequestBody UserInformationRequest userInformationRequest) {
         try {
             List<Exercise> exercises = exerciseService.exerciseListForSplit(userInformationRequest.getAge(), userInformationRequest.getWeight(),
-                    userInformationRequest.getHeight(), 2);
+                    userInformationRequest.getHeight(), 2L);
             List<ExerciseResponse> exerciseResponses = new ArrayList<>();
             for(Exercise exercise : exercises) {
                 ExerciseResponse exerciseResponse = new ExerciseResponse(exercise);
@@ -95,7 +95,7 @@ public class TrainingController {
     public ResponseEntity<?> fullBodyTrainingMale(@RequestBody UserInformationRequest userInformationRequest) {
         try {
             List<Exercise> exercises = exerciseService.exerciseListForFullBody(userInformationRequest.getAge(), userInformationRequest.getWeight(),
-                    userInformationRequest.getHeight(), 1);
+                    userInformationRequest.getHeight(), 1L);
             List<ExerciseResponse> exerciseResponses = new ArrayList<>();
             for(Exercise exercise : exercises) {
                 ExerciseResponse exerciseResponse = new ExerciseResponse(exercise);
@@ -111,7 +111,7 @@ public class TrainingController {
     public ResponseEntity<?> fullBodyTrainingFemale(@RequestBody UserInformationRequest userInformationRequest) {
         try {
             List<Exercise> exercises = exerciseService.exerciseListForFullBody(userInformationRequest.getAge(), userInformationRequest.getWeight(),
-                    userInformationRequest.getHeight(), 2);
+                    userInformationRequest.getHeight(), 2L);
             List<ExerciseResponse> exerciseResponses = new ArrayList<>();
             for(Exercise exercise : exercises) {
                 ExerciseResponse exerciseResponse = new ExerciseResponse(exercise);

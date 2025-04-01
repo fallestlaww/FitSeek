@@ -5,6 +5,6 @@ import org.example.fitseek.model.Exercise;
 import java.util.List;
 
 public interface ExerciseService {
-    List<Exercise> exerciseListForSplit(int age, double weight, double height, int genderId);
-    List<Exercise> exerciseListForFullBody(int age, double weight, double height, int genderId);
+    List<Exercise> exerciseListForSplit(int age, double weight, double height, Long genderId);
+    List<Exercise> exerciseListForFullBody(int age, double weight, double height, Long genderId);
 }

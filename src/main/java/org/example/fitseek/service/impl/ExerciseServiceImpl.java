@@ -18,14 +18,14 @@ public class ExerciseServiceImpl implements ExerciseService {
     private ExerciseRepository exerciseRepository;
 
     @Override
-    public List<Exercise> exerciseListForSplit(int age, double weight, double height, int genderId) {
+    public List<Exercise> exerciseListForSplit(int age, double weight, double height, Long genderId) {
         List<Exercise> listForSplit = new ArrayList<>();
-        Map<Integer, Integer> groups = Map.of(1,4,
-                2,4,
-                3,4,
-                4,3,
-                5,3,
-                6,3);
+        Map<Long, Integer> groups = Map.of(1L,4,
+                2L,4,
+                3L,4,
+                4L,3,
+                5L,3,
+                6L,3);
         groups.forEach((muscleId, approaches) -> {
             for(int i = 0; i < approaches; i++) {
                 exerciseRepository.findFirstByAgeAndWeightAndHeight(age, weight, height, genderId, muscleId)
@@ -36,14 +36,14 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     @Override
-    public List<Exercise> exerciseListForFullBody(int age, double weight, double height, int genderId) {
+    public List<Exercise> exerciseListForFullBody(int age, double weight, double height, Long genderId) {
         List<Exercise> listForFullBody = new ArrayList<>();
-        Map<Integer, Integer> groups = Map.of(1,1,
-                2,1,
-                3,1,
-                4,1,
-                5,1,
-                6,1);
+        Map<Long, Integer> groups = Map.of(1L,1,
+                2L,1,
+                3L,1,
+                4L,1,
+                5L,1,
+                6L,1);
         groups.forEach((muscleId, approaches) -> {
             for(int i = 0; i < approaches; i++) {
                 exerciseRepository.findFirstByAgeAndWeightAndHeight(age, weight, height, genderId, muscleId)

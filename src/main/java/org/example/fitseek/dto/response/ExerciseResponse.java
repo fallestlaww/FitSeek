@@ -9,18 +9,14 @@ import org.example.fitseek.model.Exercise;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ExerciseResponse {
     String name;
-    Integer recommendedApproaches;
-    Integer recommendedRepeats;
-    String recommendedWeight;
-    Integer musclesId;
-    Integer dayId;
+    RecommendationResponse recommendationResponse;
+    MuscleResponse muscleResponse;
+    DayResponse dayResponse;
 
     public ExerciseResponse(Exercise exercise) {
         this.name = exercise.getName();
-        this.recommendedApproaches = exercise.getRecommendedApproaches();
-        this.recommendedRepeats = exercise.getRecommendedRepeats();
-        this.recommendedWeight = exercise.getRecommendedWeight();
-        this.dayId = exercise.getDayId();
-        this.musclesId = exercise.getMusclesId();
+        this.recommendationResponse = new RecommendationResponse(exercise);
+        this.dayResponse = new DayResponse(exercise);
+        this.muscleResponse = new MuscleResponse(exercise);
     }
 }
