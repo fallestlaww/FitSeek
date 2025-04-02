@@ -39,5 +39,5 @@ public class UserRequest {
     private int weight;
     @NotBlank(message = "Gender can't be blank")
     @NotNull(message = "Gender can't be null")
-    private String gender;
+    private GenderRequest gender;
 }

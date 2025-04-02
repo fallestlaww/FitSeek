@@ -24,6 +24,6 @@ public class UserResponse {
         this.age = user.getAge();
         this.height = user.getHeight();
         this.weight = user.getWeight();
-        this.gender = user.getGender().toString();
+        this.gender = user.getGender().getName();
     }
 }
