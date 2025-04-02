@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
                 || userRequest.getPassword() == null || userRequest.getAge() == 0 || userRequest.getHeight() == 0
                 || userRequest.getWeight() == 0) throw new IllegalArgumentException("Invalid user request");
 
-        Gender gender = genderRepository.findByName(userRequest.getGender());
+        Gender gender = genderRepository.findByName(userRequest.getGender().getName());
         if (gender == null) throw new IllegalArgumentException("Invalid gender: " + userRequest.getGender());
 
         User newUser = new User();
@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
                 .ifPresent(password -> existingUser.setPassword(passwordEncoder.encode(user.getPassword())));
         if (user.getGender() != null) {
             try {
-                Gender existingGender = genderRepository.findByName(user.getGender());
+                Gender existingGender = genderRepository.findByName(user.getGender().getName());
                 existingUser.setGender(existingGender);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Invalid gender: " + user.getGender(), e);

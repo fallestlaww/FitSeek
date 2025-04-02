@@ -18,6 +18,6 @@ public class GenderServiceImpl implements GenderService {
         if (foundGender == null) {
             throw new NullPointerException("Gender not found: " + genderRequest.getName());
         }
-        return genderRepository.findByName(genderRequest.getName());
+        return foundGender;
     }
 }

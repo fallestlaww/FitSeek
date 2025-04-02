@@ -20,6 +20,4 @@ public class TrainingServiceImpl implements TrainingService {
         if(trainingType == null) throw new NullPointerException("Training type not found");
         return trainingType;
     }
-
-
 }

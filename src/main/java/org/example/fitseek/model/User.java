@@ -5,8 +5,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +20,9 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotNull
+    @NotEmpty
+    @NotBlank
     private String name;
     @Pattern(regexp = "[A-Za-z\\d]{6,}",
             message = "Must be minimum 6 symbols long, using digits and latin letters")

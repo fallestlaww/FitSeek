@@ -1,17 +1,12 @@
 package org.example.fitseek.controller;
 
-import io.jsonwebtoken.JwtException;
-import org.example.fitseek.config.jwt.JwtUtils;
 import org.example.fitseek.dto.request.TrainingTypeRequest;
 import org.example.fitseek.dto.request.UserInformationRequest;
-import org.example.fitseek.dto.response.ExerciseResponse;
-import org.example.fitseek.dto.response.UserResponse;
+import org.example.fitseek.dto.response.ExerciseResponseFullbody;
+import org.example.fitseek.dto.response.ExerciseResponseSplit;
+import org.example.fitseek.dto.response.TrainingTypeResponse;
 import org.example.fitseek.model.Exercise;
-import org.example.fitseek.model.TrainingType;
-import org.example.fitseek.model.User;
 import org.example.fitseek.service.ExerciseService;
-import org.example.fitseek.service.TrainingService;
-import org.example.fitseek.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,107 +14,56 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @RestController
 public class TrainingController {
     @Autowired
-    private TrainingService trainingService;
-    @Autowired
     private ExerciseService exerciseService;
+    private final static String MALE_GENDER = "Male";
+    private final static String SPLIT_TRAINING = "Split";
+    private final static String FULLBODY_TRAINING = "FullBody";
 
-    @PostMapping("/male-training")
-    public ResponseEntity<?> chooseTypeMaleTraining(@RequestBody TrainingTypeRequest trainingTypeRequest) {
-       try {
-           TrainingType trainingType = trainingService.chooseTraining(trainingTypeRequest);
-           if (trainingType.getName().equalsIgnoreCase("Split"))
-               return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/male-training/split")).build();
-           if (trainingType.getName().equalsIgnoreCase("FullBody"))
-               return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/male-training/fullbody")).build();
-           return ResponseEntity.ok().build();
-       }
-       catch (NullPointerException e) {
-           return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-       }
-    }
-
-    @PostMapping("/female-training")
-    public ResponseEntity<?> chooseTypeFemaleTraining(@RequestBody TrainingTypeRequest trainingTypeRequest) {
-        try {
-            TrainingType trainingType = trainingService.chooseTraining(trainingTypeRequest);
-            if(trainingType.getName().equalsIgnoreCase("Split"))
-                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/female-training/split")).build();
-            if(trainingType.getName().equalsIgnoreCase("FullBody"))
-                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/female-training/fullbody")).build();
-            return ResponseEntity.ok().build();
-        } catch (NullPointerException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    @PostMapping("/training-type")
+    public ResponseEntity<?> trainingType(@RequestBody TrainingTypeRequest trainingTypeRequest) {
+        if(trainingTypeRequest == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        if(!trainingTypeRequest.getName().equalsIgnoreCase(SPLIT_TRAINING) &&
+                !trainingTypeRequest.getName().equalsIgnoreCase(FULLBODY_TRAINING)) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new TrainingTypeResponse(trainingTypeRequest.getName(), "Enter your age, weight and height"));
     }
 
-    @PostMapping("/male-training/split")
-    public ResponseEntity<?> splitTrainingMale(@RequestBody UserInformationRequest userInformationRequest) {
-        try {
-            List<Exercise> exercises = exerciseService.exerciseListForSplit(userInformationRequest.getAge(), userInformationRequest.getWeight(),
-                    userInformationRequest.getHeight(), 1L);
-            List<ExerciseResponse> exerciseResponses = new ArrayList<>();
-            for(Exercise exercise : exercises) {
-                ExerciseResponse exerciseResponse = new ExerciseResponse(exercise);
-                exerciseResponses.add(exerciseResponse);
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(exerciseResponses);
-        } catch (NullPointerException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    @PostMapping("/training-type/exercises")
+    public ResponseEntity<?> trainingTypeExercises(@RequestBody UserInformationRequest userRequest) {
+        if (userRequest == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null");
         }
+        if (userRequest.getGender() == null || userRequest.getGender().getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Gender cannot be null");
+        }
+        if (userRequest.getTrainingType() == null || userRequest.getTrainingType().getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Training type cannot be null");
+        }
+
+        Long genderId = userRequest.getGender().getName().equalsIgnoreCase(MALE_GENDER) ? 1L : 2L;
+        List<Exercise> exercises;
+        List<?> exerciseResponses;
+
+        if (userRequest.getTrainingType().getName().equalsIgnoreCase(FULLBODY_TRAINING)) {
+            exercises = exerciseService.exerciseListForFullBody(
+                    userRequest.getAge(), userRequest.getWeight(), userRequest.getHeight(), genderId);
+            exerciseResponses = exercises.stream().map(ExerciseResponseFullbody::new).toList();
+        } else if (userRequest.getTrainingType().getName().equalsIgnoreCase(SPLIT_TRAINING)) {
+            exercises = exerciseService.exerciseListForSplit(
+                    userRequest.getAge(), userRequest.getWeight(), userRequest.getHeight(), genderId);
+            exerciseResponses = exercises.stream().map(ExerciseResponseSplit::new).toList();
+        } else {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Invalid training type");
+        }
+
+        return ResponseEntity.ok(exerciseResponses.reversed());
     }
 
-    @PostMapping("/female-training/split")
-    public ResponseEntity<?> splitTrainingFemale(@RequestBody UserInformationRequest userInformationRequest) {
-        try {
-            List<Exercise> exercises = exerciseService.exerciseListForSplit(userInformationRequest.getAge(), userInformationRequest.getWeight(),
-                    userInformationRequest.getHeight(), 2L);
-            List<ExerciseResponse> exerciseResponses = new ArrayList<>();
-            for(Exercise exercise : exercises) {
-                ExerciseResponse exerciseResponse = new ExerciseResponse(exercise);
-                exerciseResponses.add(exerciseResponse);
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(exerciseResponses);
-        } catch (NullPointerException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }
-
-    @PostMapping("/male-training/fullbody")
-    public ResponseEntity<?> fullBodyTrainingMale(@RequestBody UserInformationRequest userInformationRequest) {
-        try {
-            List<Exercise> exercises = exerciseService.exerciseListForFullBody(userInformationRequest.getAge(), userInformationRequest.getWeight(),
-                    userInformationRequest.getHeight(), 1L);
-            List<ExerciseResponse> exerciseResponses = new ArrayList<>();
-            for(Exercise exercise : exercises) {
-                ExerciseResponse exerciseResponse = new ExerciseResponse(exercise);
-                exerciseResponses.add(exerciseResponse);
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(exerciseResponses);
-        } catch (NullPointerException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }
-
-    @PostMapping("/female-training/fullbody")
-    public ResponseEntity<?> fullBodyTrainingFemale(@RequestBody UserInformationRequest userInformationRequest) {
-        try {
-            List<Exercise> exercises = exerciseService.exerciseListForFullBody(userInformationRequest.getAge(), userInformationRequest.getWeight(),
-                    userInformationRequest.getHeight(), 2L);
-            List<ExerciseResponse> exerciseResponses = new ArrayList<>();
-            for(Exercise exercise : exercises) {
-                ExerciseResponse exerciseResponse = new ExerciseResponse(exercise);
-                exerciseResponses.add(exerciseResponse);
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(exerciseResponses);
-        } catch (NullPointerException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }
 }
