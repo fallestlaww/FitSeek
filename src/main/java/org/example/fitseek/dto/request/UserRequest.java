@@ -33,10 +33,8 @@ public class UserRequest {
     private String password;
     @Min(value = 0, message = "Age must be higher than 0")
     private int age;
-    @Min(value = 0, message = "Height must be higher than 0")
-    private int height;
     @Min(value = 0, message = "Weight must be higher than 0")
-    private int weight;
+    private double weight;
     @NotBlank(message = "Gender can't be blank")
     @NotNull(message = "Gender can't be null")
     private GenderRequest gender;

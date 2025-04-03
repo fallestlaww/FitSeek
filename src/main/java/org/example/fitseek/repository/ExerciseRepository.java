@@ -10,10 +10,12 @@ import java.util.List;
 
 @Repository
 public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
-    @Query("SELECT e FROM Exercise e " +
-            "JOIN Recommendation r ON r.exercise.id = e.id " +
-            "WHERE r.age = :age AND r.weight = :weight " +
-            "AND e.gender.id = :gender_id AND e.muscle.id = :muscle_id")
+    @Query(value = "SELECT e.*, r.recommended_sets, r.recommended_repeats, " +
+            "r.recommended_weight_min, r.recommended_weight_max FROM exercises e " +
+            "JOIN recommendations r ON r.exercise_id = e.id " +
+            "WHERE r.user_age = :age AND r.user_weight = :weight " +
+            "AND e.gender_id = :gender_id AND e.muscles_id = :muscle_id ",
+            nativeQuery = true)
     List<Exercise> findFirstByAgeAndWeightAndHeight(
             @Param("age") int age,
             @Param("weight") double weight,

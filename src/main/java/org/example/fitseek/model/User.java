@@ -37,8 +37,7 @@ public class User implements UserDetails {
     @Email
     private String email;
     private int age;
-    private int height;
-    private int weight;
+    private double weight;
     @ManyToOne
     @JoinColumn(name = "gender_id", referencedColumnName = "id")
     private Gender gender;
@@ -51,12 +50,12 @@ public class User implements UserDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return age == user.age && height == user.height && weight == user.weight && Objects.equals(id, user.id) && Objects.equals(name, user.name) && Objects.equals(password, user.password) && Objects.equals(email, user.email) && gender == user.gender && Objects.equals(role, user.role);
+        return age == user.age && weight == user.weight && Objects.equals(id, user.id) && Objects.equals(name, user.name) && Objects.equals(password, user.password) && Objects.equals(email, user.email) && Objects.equals(gender, user.gender) && Objects.equals(role, user.role);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, password, email, age, height, weight, gender, role);
+        return Objects.hash(id, name, password, email, age, weight, gender, role);
     }
 
     @Override

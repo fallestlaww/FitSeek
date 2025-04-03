@@ -53,17 +53,15 @@ public class TrainingController {
 
         if (userRequest.getTrainingType().getName().equalsIgnoreCase(FULLBODY_TRAINING)) {
             exercises = exerciseService.exerciseListForFullBody(
-                    userRequest.getAge(), userRequest.getWeight(), userRequest.getHeight(), genderId);
+                    userRequest.getAge(), userRequest.getWeight(), genderId);
             exerciseResponses = exercises.stream().map(ExerciseResponseFullbody::new).toList();
         } else if (userRequest.getTrainingType().getName().equalsIgnoreCase(SPLIT_TRAINING)) {
             exercises = exerciseService.exerciseListForSplit(
-                    userRequest.getAge(), userRequest.getWeight(), userRequest.getHeight(), genderId);
+                    userRequest.getAge(), userRequest.getWeight(), genderId);
             exerciseResponses = exercises.stream().map(ExerciseResponseSplit::new).toList();
         } else {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Invalid training type");
         }
-
-        return ResponseEntity.ok(exerciseResponses.reversed());
+        return ResponseEntity.ok(exerciseResponses);
     }
-
 }

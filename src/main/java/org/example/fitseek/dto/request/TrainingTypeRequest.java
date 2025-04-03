@@ -19,5 +19,4 @@ public class TrainingTypeRequest {
     @NotBlank(message = "Name can't be blank")
     @NotNull(message = "Name can't be null")
     private String name;
-
 }

@@ -4,17 +4,18 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Value;
 import org.example.fitseek.model.Exercise;
-
 @Value
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class RecommendationResponse {
-    Integer recommendedApproaches;
+    Integer recommendedSets;
     Integer recommendedRepeats;
-    String recommendedWeight;
+    Integer recommendedWeightMin;
+    Integer recommendedWeightMax;
 
     public RecommendationResponse(Exercise exercise) {
-        this.recommendedApproaches = exercise.getRecommendationList().getFirst().getRecommendedApproaches();
+        this.recommendedSets = exercise.getRecommendationList().getFirst().getRecommendedSets();
         this.recommendedRepeats = exercise.getRecommendationList().getFirst().getRecommendedRepeats();
-        this.recommendedWeight = exercise.getRecommendationList().getFirst().getRecommendedWeight();
+        this.recommendedWeightMin = exercise.getRecommendationList().getFirst().getRecommendedWeightMin();
+        this.recommendedWeightMax = exercise.getRecommendationList().getFirst().getRecommendedWeightMax();
     }
 }

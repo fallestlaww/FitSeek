@@ -13,8 +13,7 @@ public class UserResponse {
     String name;
     String email;
     int age;
-    int height;
-    int weight;
+    double weight;
     String gender;
 
     public UserResponse(User user) {
@@ -22,7 +21,6 @@ public class UserResponse {
         this.name = user.getName();
         this.email = user.getEmail();
         this.age = user.getAge();
-        this.height = user.getHeight();
         this.weight = user.getWeight();
         this.gender = user.getGender().getName();
     }
