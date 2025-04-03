@@ -38,8 +38,8 @@ public class UserServiceImpl implements UserService {
         if (existingUser != null) throw new IllegalArgumentException("User with email " + userRequest.getEmail() + " already exists");
 
         if(userRequest.getName() == null || userRequest.getEmail() == null
-                || userRequest.getPassword() == null || userRequest.getAge() == 0 || userRequest.getHeight() == 0
-                || userRequest.getWeight() == 0) throw new IllegalArgumentException("Invalid user request");
+                || userRequest.getPassword() == null || userRequest.getAge() == 0 || userRequest.getWeight() == 0)
+            throw new IllegalArgumentException("Invalid user request");
 
         Gender gender = genderRepository.findByName(userRequest.getGender().getName());
         if (gender == null) throw new IllegalArgumentException("Invalid gender: " + userRequest.getGender());
@@ -50,7 +50,6 @@ public class UserServiceImpl implements UserService {
         newUser.setEmail(userRequest.getEmail());
         newUser.setAge(userRequest.getAge());
         newUser.setGender(gender);
-        newUser.setHeight(userRequest.getHeight());
         newUser.setWeight(userRequest.getWeight());
         newUser.setRole(roleRepository.findByName("USER"));
 
@@ -81,7 +80,6 @@ public class UserServiceImpl implements UserService {
             }
         }
         if(user.getAge() > 0) existingUser.setAge(user.getAge());
-        if(user.getHeight() > 0) existingUser.setHeight(user.getHeight());
         if(user.getWeight() > 0) existingUser.setWeight(user.getWeight());
         return userRepository.save(existingUser);
     }

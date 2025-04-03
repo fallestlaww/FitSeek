@@ -37,4 +37,17 @@ public class UserController {
         User updatedUser = userService.updateUser(user);
         return ResponseEntity.ok().body(updatedUser);
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.substring(7);
+            String email = jwtUtils.getEmailFromToken(token);
+            User user = userService.readUser(email);
+            userService.deleteUser(user.getId());
+            return ResponseEntity.ok().body("Deleted successfully");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 }
