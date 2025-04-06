@@ -14,6 +14,7 @@ import org.example.fitseek.repository.RoleRepository;
 import org.example.fitseek.repository.UserRepository;
 import org.example.fitseek.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -116,6 +117,29 @@ public class UserServiceImpl implements UserService {
         }
         User user = userOpt.get();
         log.debug("Deleting user: {}", user.getEmail());
+        userRepository.deleteById(id);
+        log.info("Deleted user: {}", user.getEmail());
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Override
+    public User readUserForAdmin(Long id) {
+        log.debug("Reading user: {}", id);
+        Optional<User> userOptional = userRepository.findById(id);
+        User user = userOptional.orElseThrow(() -> new EntityNotFoundException("User not found"));
+        if (user == null) {
+            log.error("User with id {} not found", id);
+            throw new InvalidEntityException("User with id " + id + " does not exist");
+        }
+        return user;
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Override
+    public void deleteUserForAdmin(Long id) {
+        log.debug("Deleting user: {}", id);
+        Optional<User> userOptional = userRepository.findById(id);
+        User user = userOptional.orElseThrow(() -> new EntityNotFoundException("User not found"));
         userRepository.deleteById(id);
         log.info("Deleted user: {}", user.getEmail());
     }
