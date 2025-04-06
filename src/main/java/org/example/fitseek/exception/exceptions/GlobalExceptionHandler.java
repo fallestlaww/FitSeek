@@ -22,14 +22,9 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ExceptionHandler(InvalidRequestException.class)
+    @ExceptionHandler({InvalidRequestException.class, Exception.class})
     public ResponseEntity<Object> invalidRequestException(InvalidRequestException e) {
         return buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> exception(Exception e) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
     private ResponseEntity<Object> buildResponse(HttpStatus status, String message) {

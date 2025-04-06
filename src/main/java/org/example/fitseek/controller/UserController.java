@@ -1,16 +1,19 @@
 package org.example.fitseek.controller;
 
 import io.jsonwebtoken.JwtException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.fitseek.config.jwt.JwtUtils;
 import org.example.fitseek.dto.request.UserRequest;
 import org.example.fitseek.dto.response.UserResponse;
 import org.example.fitseek.model.User;
+import org.example.fitseek.repository.UserRepository;
 import org.example.fitseek.service.UserService;
 import org.example.fitseek.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -60,6 +63,27 @@ public class UserController {
         } catch (JwtException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @GetMapping("/read/{id}")
+    public ResponseEntity<?> readUserById(@PathVariable("id") long id) {
+        try {
+            User user = userService.readUserForAdmin(id);
+            return ResponseEntity.ok().body(user);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteUserById(@PathVariable("id") long id) {
+        try {
+            userService.deleteUserForAdmin(id);
+            log.info("User deleted: {}", id);
+            return ResponseEntity.ok().body("Deleted successfully");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 }
