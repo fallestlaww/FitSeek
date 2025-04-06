@@ -7,4 +7,5 @@ import java.util.List;
 public interface ExerciseService {
     List<Exercise> exerciseListForSplit(int age, double weight, Long genderId);
     List<Exercise> exerciseListForFullBody(int age, double weight,  Long genderId);
+    List<Exercise> exerciseListForGender(Long genderId);
 }

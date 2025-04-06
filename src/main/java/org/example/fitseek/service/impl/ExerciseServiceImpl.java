@@ -1,5 +1,6 @@
 package org.example.fitseek.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.fitseek.model.Exercise;
 import org.example.fitseek.model.Recommendation;
 import org.example.fitseek.repository.ExerciseRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
 @Service
 public class ExerciseServiceImpl implements ExerciseService {
     @Autowired
@@ -30,22 +32,32 @@ public class ExerciseServiceImpl implements ExerciseService {
     @Override
     public List<Exercise> exerciseListForSplit(int age, double weight, Long genderId) {
         int ageGrouped = groupAge(age);
+        log.info("Grouped age for split: {}", ageGrouped);
         double weightGrouped = groupWeight(weight, genderId);
+        log.info("Weight grouped for split: {}", weightGrouped);
         return getFilteredExercises(ageGrouped, weightGrouped, genderId, GROUPS_FOR_SPLIT);
     }
 
     @Override
     public List<Exercise> exerciseListForFullBody(int age, double weight, Long genderId) {
         int ageGrouped = groupAge(age);
+        log.info("Grouped age for fullbody: {}", ageGrouped);
         double weightGrouped = groupWeight(weight, genderId);
+        log.info("Weight grouped for fullbody: {}", weightGrouped);
         return getFilteredExercises(ageGrouped, weightGrouped, genderId, GROUPS_FOR_FULLBODY);
+    }
+
+    @Override
+    public List<Exercise> exerciseListForGender(Long genderId) {
+        return exerciseRepository.findByGenderId(genderId);
     }
 
     private List<Exercise> getFilteredExercises(int ageGrouped, double weightGrouped, Long genderId, Map<Long, Integer> muscleGroups) {
         List<Exercise> exercises = new ArrayList<>();
-
-        muscleGroups.forEach((muscleId, approaches) -> {
-            for (int i = 0; i < approaches; i++) {
+        muscleGroups.forEach((muscleId, sets) -> {
+            log.info("Accepted muscleId: {}", muscleId);
+            log.info("Accepted sets: {}", sets);
+            for (int i = 0; i < sets; i++) {
                 exerciseRepository.findFirstByAgeAndWeightAndHeight(ageGrouped, weightGrouped, genderId, muscleId)
                         .stream()
                         .filter(exercise -> !exercises.contains(exercise))
@@ -61,7 +73,9 @@ public class ExerciseServiceImpl implements ExerciseService {
                             }
                         });
             }
+            log.info("Exercises for one group of muscles: {}", exercises);
         });
+        log.info("Exercises for training: {}", exercises);
         return exercises;
     }
 

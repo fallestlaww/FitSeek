@@ -10,9 +10,11 @@ import lombok.Value;
 public class TrainingTypeResponse {
     String name;
     String message;
+    String information;
 
-    public TrainingTypeResponse(String name, String message) {
+    public TrainingTypeResponse(String name, String message, String information) {
         this.name = name;
         this.message = message;
+        this.information = information;
     }
 }
