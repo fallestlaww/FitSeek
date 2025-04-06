@@ -21,4 +21,6 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
             @Param("weight") double weight,
             @Param("gender_id") Long genderId,
             @Param("muscle_id") Long muscleId);
+
+    List<Exercise> findByGenderId(Long genderId);
 }

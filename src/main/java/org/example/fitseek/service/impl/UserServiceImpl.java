@@ -1,6 +1,12 @@
 package org.example.fitseek.service.impl;
 
+import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.example.fitseek.dto.request.UserRequest;
+import org.example.fitseek.exception.exceptions.EntityAlreadyExistsException;
+import org.example.fitseek.exception.exceptions.EntityNullException;
+import org.example.fitseek.exception.exceptions.InvalidEntityException;
+import org.example.fitseek.exception.exceptions.InvalidRequestException;
 import org.example.fitseek.model.Gender;
 import org.example.fitseek.model.User;
 import org.example.fitseek.repository.GenderRepository;
@@ -8,8 +14,6 @@ import org.example.fitseek.repository.RoleRepository;
 import org.example.fitseek.repository.UserRepository;
 import org.example.fitseek.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,8 +22,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
@@ -31,18 +37,24 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RoleRepository roleRepository;
 
-
     @Override
     public User createUser(UserRequest userRequest) {
+        log.debug("Creating user: {}", userRequest.getEmail());
         User existingUser = userRepository.findByEmail(userRequest.getEmail());
-        if (existingUser != null) throw new IllegalArgumentException("User with email " + userRequest.getEmail() + " already exists");
+        if (existingUser != null) {
+            log.error("User with email {} already exists", userRequest.getEmail());
+            throw new EntityAlreadyExistsException("User with email " + userRequest.getEmail() + " already exists");
+        }
 
         if(userRequest.getName() == null || userRequest.getEmail() == null
-                || userRequest.getPassword() == null || userRequest.getAge() == 0 || userRequest.getWeight() == 0)
-            throw new IllegalArgumentException("Invalid user request");
+                || userRequest.getPassword() == null || userRequest.getAge() == 0 || userRequest.getWeight() == 0) {
+            log.error("Invalid user request");
+            throw new InvalidRequestException("Invalid user request");
+        }
 
-        Gender gender = genderRepository.findByName(userRequest.getGender().getName());
-        if (gender == null) throw new IllegalArgumentException("Invalid gender: " + userRequest.getGender());
+        Gender gender = Optional.ofNullable(genderRepository.findByName(userRequest.getGender().getName()))
+                .orElseThrow(() -> new InvalidEntityException("Invalid gender: " + userRequest.getGender().getName()));
+
 
         User newUser = new User();
         newUser.setName(userRequest.getName());
@@ -52,22 +64,30 @@ public class UserServiceImpl implements UserService {
         newUser.setGender(gender);
         newUser.setWeight(userRequest.getWeight());
         newUser.setRole(roleRepository.findByName("USER"));
+        log.debug("Saving user: {}", newUser);
 
         return userRepository.save(newUser);
     }
     @Override
     public User readUser(String email) {
+        log.info("Reading user: {}", email);
         User user = userRepository.findByEmail(email);
-        if (user == null) throw new IllegalArgumentException("User with email " + email + " does not exist");
+        if (user == null) {
+            log.error("User with email {} not found", email);
+            throw new InvalidEntityException("User with email " + email + " does not exist");
+        }
         return user;
-        //todo custom exceptions
     }
 
     @Override
     public User updateUser(UserRequest user) {
-        //todo custom exceptions + logging
-        if(user == null) throw new NullPointerException("Requested user is null");
+        log.debug("Updating user: {}", Objects.toString(user, "null"));
+        if(user == null) {
+            log.error("Requested user is null");
+            throw new EntityNullException("Requested user is null");
+        }
         User existingUser = userRepository.findByEmail(user.getEmail());
+        log.debug("Updating existing user: {}", existingUser.getEmail());
         Optional.ofNullable(user.getName()).ifPresent(existingUser::setName);
         Optional.ofNullable(user.getPassword())
                 .ifPresent(password -> existingUser.setPassword(passwordEncoder.encode(user.getPassword())));
@@ -75,28 +95,40 @@ public class UserServiceImpl implements UserService {
             try {
                 Gender existingGender = genderRepository.findByName(user.getGender().getName());
                 existingUser.setGender(existingGender);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid gender: " + user.getGender(), e);
+                log.debug("Existing gender: {}", existingGender.getName());
+            } catch (InvalidEntityException e) {
+                log.error("Invalid user gender: {}", user.getGender().getName());
+                throw new InvalidEntityException("Invalid gender: " + user.getGender().getName());
             }
         }
         if(user.getAge() > 0) existingUser.setAge(user.getAge());
         if(user.getWeight() > 0) existingUser.setWeight(user.getWeight());
+        log.info("Existing user: {}", existingUser);
         return userRepository.save(existingUser);
     }
 
     @Override
     public void deleteUser(Long id) {
-        //todo custom exceptions + logging
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            log.error("User with id {} not found", id);
+            throw new EntityNotFoundException("User not found");
+        }
+        User user = userOpt.get();
+        log.debug("Deleting user: {}", user.getEmail());
         userRepository.deleteById(id);
+        log.info("Deleted user: {}", user.getEmail());
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(username);
-        if(user == null) throw new UsernameNotFoundException("User with email " + username + " not found");
-
+        if(user == null) {
+            log.error("User with user email {} not found", username);
+            throw new EntityNotFoundException("User with email " + username + " not found");
+        }
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
-
+        log.info("User authorities: {}", authorities);
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),

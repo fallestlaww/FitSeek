@@ -1,10 +1,7 @@
 package org.example.fitseek.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Objects;
@@ -13,6 +10,7 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "roles")
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class Role implements GrantedAuthority {
