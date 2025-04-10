@@ -1,5 +1,6 @@
 package org.example.fitseek.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class Recommendation {
     private Long id;
     @ManyToOne
     @JoinColumn(name = "exercise_id", referencedColumnName = "id")
+    @JsonBackReference
     private Exercise exercise;
     private int userAge;
     private double userWeight;

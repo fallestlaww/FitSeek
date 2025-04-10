@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
@@ -21,6 +22,8 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
             @Param("weight") double weight,
             @Param("gender_id") Long genderId,
             @Param("muscle_id") Long muscleId);
-
     List<Exercise> findByGenderId(Long genderId);
+    Exercise findByName(String name);
+    Optional<Exercise> findById(Long id);
+    void deleteExerciseByName(String name);
 }

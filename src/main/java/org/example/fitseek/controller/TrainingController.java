@@ -6,9 +6,10 @@ import org.example.fitseek.dto.request.UserInformationRequest;
 import org.example.fitseek.dto.response.ExerciseResponseFullbody;
 import org.example.fitseek.dto.response.ExerciseResponseSplit;
 import org.example.fitseek.dto.response.TrainingTypeResponse;
+import org.example.fitseek.exception.exceptions.EntityNullException;
+import org.example.fitseek.exception.exceptions.InvalidRequestException;
 import org.example.fitseek.model.Exercise;
 import org.example.fitseek.service.ExerciseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,34 +21,37 @@ import java.util.*;
 @Slf4j
 @RestController
 public class TrainingController {
-    @Autowired
-    private ExerciseService exerciseService;
+    private final ExerciseService exerciseService;
     private final static String MALE_GENDER = "Male";
     private final static String SPLIT_TRAINING = "Split";
     private final static String FULLBODY_TRAINING = "FullBody";
 
+    public TrainingController(ExerciseService exerciseService) {
+        this.exerciseService = exerciseService;
+    }
+
     @PostMapping("/training-type/information")
     public ResponseEntity<?> trainingType(@RequestBody TrainingTypeRequest trainingTypeRequest) {
         log.debug("Requested training type {}", Objects.toString(trainingTypeRequest, "null"));
-        if(trainingTypeRequest == null) {
+        if(trainingTypeRequest == null || trainingTypeRequest.getName() == null || trainingTypeRequest.getName().isEmpty()) {
             log.warn("Requested training type is null");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new EntityNullException("Training type is null");
         }
         if(!trainingTypeRequest.getName().equalsIgnoreCase(SPLIT_TRAINING) &&
                 !trainingTypeRequest.getName().equalsIgnoreCase(FULLBODY_TRAINING)) {
             log.warn("Requested training type name {} is not valid", trainingTypeRequest.getName());
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            throw new InvalidRequestException("Requested training type name is not valid");
         }
 
         if(trainingTypeRequest.getName().equalsIgnoreCase(SPLIT_TRAINING)) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new TrainingTypeResponse(trainingTypeRequest.getName(), "Enter your age, weight and height"
+                    .body(new TrainingTypeResponse(trainingTypeRequest.getName(), "Enter your age, weight and height on /training-type/exercises"
                             ,"Split -  is a type of training where different muscle groups are worked on different days. " +
                             "For example, you might train your legs one day, your chest and biceps on another, and your back and triceps on a third. " +
                             "This approach allows you to recover your muscles better and train with greater intensity."));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new TrainingTypeResponse(trainingTypeRequest.getName(), "Enter your age, weight and height",
+                    .body(new TrainingTypeResponse(trainingTypeRequest.getName(), "Enter your age, weight and height on /training-type/exercises",
                             "FullBody -  is a type of training that works all major muscle groups in one session" +
                                     "This approach is suitable for beginners or those who train 2–3 times a week, and promotes overall strength and endurance development."));
         }

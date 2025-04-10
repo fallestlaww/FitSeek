@@ -1,11 +1,16 @@
 package org.example.fitseek.service.impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.example.fitseek.model.Exercise;
-import org.example.fitseek.model.Recommendation;
-import org.example.fitseek.repository.ExerciseRepository;
+import org.example.fitseek.dto.request.ExerciseRequest;
+import org.example.fitseek.exception.exceptions.EntityNullException;
+import org.example.fitseek.exception.exceptions.InvalidEntityException;
+import org.example.fitseek.model.*;
+import org.example.fitseek.repository.*;
 import org.example.fitseek.service.ExerciseService;
+import org.example.fitseek.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,9 +34,21 @@ public class ExerciseServiceImpl implements ExerciseService {
     private static final int GROUPED_WEIGHT_90 = 90;
     private static final int GROUPED_WEIGHT_91 = 91;
 
+    private final MuscleRepository muscleRepository;
+    private final GenderRepository genderRepository;
+    private final DayRepository dayRepository;
+    private final RecommendationService recommendationService;
+
+    public ExerciseServiceImpl(MuscleRepository muscleRepository, GenderRepository genderRepository, DayRepository dayRepository, RecommendationService recommendationService) {
+        this.muscleRepository = muscleRepository;
+        this.genderRepository = genderRepository;
+        this.dayRepository = dayRepository;
+        this.recommendationService = recommendationService;
+    }
+
     @Override
     public List<Exercise> exerciseListForSplit(int age, double weight, Long genderId) {
-        int ageGrouped = groupAge(age);
+        int ageGrouped = groupAge(age, genderId);
         log.info("Grouped age for split: {}", ageGrouped);
         double weightGrouped = groupWeight(weight, genderId);
         log.info("Weight grouped for split: {}", weightGrouped);
@@ -40,7 +57,7 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @Override
     public List<Exercise> exerciseListForFullBody(int age, double weight, Long genderId) {
-        int ageGrouped = groupAge(age);
+        int ageGrouped = groupAge(age, genderId);
         log.info("Grouped age for fullbody: {}", ageGrouped);
         double weightGrouped = groupWeight(weight, genderId);
         log.info("Weight grouped for fullbody: {}", weightGrouped);
@@ -52,6 +69,87 @@ public class ExerciseServiceImpl implements ExerciseService {
         return exerciseRepository.findByGenderId(genderId);
     }
 
+    @Override
+    public Exercise readExercise(Long id) {
+        log.debug("Reading exercise {}", id);
+        if(id == null) {
+            log.warn("Requested exercise id is null");
+            throw new EntityNullException("Requested exercise id is null");
+        }
+        Optional<Exercise> exerciseOptional = exerciseRepository.findById(id);
+        return exerciseOptional.orElseThrow(EntityNotFoundException::new);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Override
+    public Exercise updateExercise(ExerciseRequest exercise) {
+        log.debug("Updating exercise {}", Objects.toString(exercise, "null"));
+        if(exercise == null) {
+            log.warn("Requested exercise is null");
+            throw new EntityNullException("Requested exercise is null");
+        }
+        Exercise existingExercise = exerciseRepository.findByName(exercise.getName());
+
+        if(existingExercise == null) {
+            log.warn("Exercise with name {} not found", exercise.getName());
+            throw new EntityNotFoundException("Exercise with name " + exercise.getName() + " not found");
+        }
+
+        Optional.ofNullable(exercise.getName()).ifPresent(existingExercise::setName);
+        if(exercise.getMuscle() != null) {
+            try {
+                Muscle muscle = muscleRepository.findByName(exercise.getMuscle().getName());
+                existingExercise.setMuscle(muscle);
+            } catch (InvalidEntityException e) {
+                log.warn("Invalid muscle {}", exercise.getMuscle().getName());
+                throw new InvalidEntityException("Invalid muscle: " + exercise.getMuscle().getName());
+            }
+        }
+        if(exercise.getGender() != null) {
+            try {
+                Gender gender = genderRepository.findByName(exercise.getGender().getName());
+                existingExercise.setGender(gender);
+            } catch (InvalidEntityException e) {
+                log.warn("Invalid gender {}", exercise.getGender().getName());
+                throw new InvalidEntityException("Invalid gender: " + exercise.getGender().getName());
+            }
+        }
+        if(exercise.getDay() != null) {
+            try {
+                Day day = dayRepository.findByName(exercise.getDay().getName());
+                existingExercise.setDay(day);
+            } catch (InvalidEntityException e) {
+                log.warn("Invalid day {}", exercise.getDay().getName());
+                throw new InvalidEntityException("Invalid day: " + exercise.getDay().getName());
+            }
+        }
+        List<Recommendation> recommendations = new ArrayList<>();
+        if(exercise.getRecommendation() != null) {
+            try {
+                for(int i = 0; i < exercise.getRecommendation().size(); i++) {
+                    Recommendation recommendation = recommendationService.updateRecommendation(exercise.getRecommendation().get(i));
+                    recommendations.add(recommendation);
+                    existingExercise.setRecommendationList(recommendations);
+                }
+            } catch (InvalidEntityException e) {
+                log.warn("Invalid recommendation {}", recommendations);
+                throw new InvalidEntityException("Invalid recommendation " + recommendations);
+            }
+        }
+        return exerciseRepository.save(existingExercise);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Override
+    public void deleteExercise(String name) {
+        log.debug("Deleting exercise {}", name);
+        if(name == null || name.isEmpty()) {
+            log.warn("Requested exercise name is null");
+            throw new EntityNullException("Requested exercise name is null");
+        }
+        exerciseRepository.deleteExerciseByName(name);
+    }
+
     private List<Exercise> getFilteredExercises(int ageGrouped, double weightGrouped, Long genderId, Map<Long, Integer> muscleGroups) {
         List<Exercise> exercises = new ArrayList<>();
         muscleGroups.forEach((muscleId, sets) -> {
@@ -61,10 +159,10 @@ public class ExerciseServiceImpl implements ExerciseService {
                 exerciseRepository.findFirstByAgeAndWeightAndHeight(ageGrouped, weightGrouped, genderId, muscleId)
                         .stream()
                         .filter(exercise -> !exercises.contains(exercise))
-                        .findFirst()
+                        .findAny()
                         .ifPresent(exercise -> {
                             List<Recommendation> filteredRecommendations = exercise.getRecommendationList().stream()
-                                    .filter(recommendation -> groupAge(recommendation.getUserAge()) == ageGrouped
+                                    .filter(recommendation -> groupAge(recommendation.getUserAge(), genderId) == ageGrouped
                                             && groupWeight(recommendation.getUserWeight(), genderId) == weightGrouped)
                                     .toList();
                             exercise.setRecommendationList(filteredRecommendations);
@@ -79,13 +177,31 @@ public class ExerciseServiceImpl implements ExerciseService {
         return exercises;
     }
 
-    private int groupAge(int age) {
-        if (10 < age && age <= GROUPED_AGE_25) {
+    private int groupAge(int age, Long genderId) {
+        return switch (genderId.intValue()) {
+            case 1 -> groupAgeForMale(age);
+            case 2 -> groupAgeForFemale(age);
+            default -> GROUPED_AGE_40;
+        };
+    }
+
+    private int groupAgeForMale(int age) {
+        if (1 < age && age <= GROUPED_AGE_25) {
             return GROUPED_AGE_25;
         } else if (GROUPED_AGE_25 < age && age <= GROUPED_AGE_40) {
             return GROUPED_AGE_40;
         } else {
             return GROUPED_AGE_41;
+        }
+    }
+
+    private int groupAgeForFemale(int age) {
+        if (1 < age && age <= GROUPED_AGE_25) {
+            return GROUPED_AGE_25;
+        } else if (GROUPED_AGE_25 < age && age <= GROUPED_AGE_40) {
+            return GROUPED_AGE_40;
+        } else {
+            return GROUPED_AGE_40;
         }
     }
 

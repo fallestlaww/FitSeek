@@ -1,5 +1,6 @@
 package org.example.fitseek.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,5 +29,6 @@ public class Exercise {
     @JoinColumn(name = "gender_id", referencedColumnName = "id")
     private Gender gender;
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Recommendation> recommendationList = new ArrayList<>();
 }
