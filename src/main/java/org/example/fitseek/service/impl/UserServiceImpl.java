@@ -29,45 +29,45 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private GenderRepository genderRepository;
-    @Autowired
-    private RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final GenderRepository genderRepository;
+    private final RoleRepository roleRepository;
+
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, GenderRepository genderRepository, RoleRepository roleRepository) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.genderRepository = genderRepository;
+        this.roleRepository = roleRepository;
+    }
 
     @Override
     public User createUser(UserRequest userRequest) {
-        log.debug("Creating user: {}", userRequest.getEmail());
-        User existingUser = userRepository.findByEmail(userRequest.getEmail());
-        if (existingUser != null) {
-            log.error("User with email {} already exists", userRequest.getEmail());
-            throw new EntityAlreadyExistsException("User with email " + userRequest.getEmail() + " already exists");
-        }
+            log.debug("Creating user: {}", userRequest.getEmail());
+            User existingUser = userRepository.findByEmail(userRequest.getEmail());
+            if (existingUser != null) {
+                log.error("User with email {} already exists", userRequest.getEmail());
+                throw new EntityAlreadyExistsException("User with email " + userRequest.getEmail() + " already exists");
+            }
 
-        if(userRequest.getName() == null || userRequest.getEmail() == null
-                || userRequest.getPassword() == null || userRequest.getAge() == 0 || userRequest.getWeight() == 0) {
-            log.error("Invalid user request");
-            throw new InvalidRequestException("Invalid user request");
-        }
+            if (userRequest.getName() == null || userRequest.getEmail() == null
+                    || userRequest.getPassword() == null || userRequest.getAge() == 0 || userRequest.getWeight() == 0) {
+                log.error("Invalid user request");
+                throw new InvalidRequestException("Invalid user request");
+            }
+            Gender gender = Optional.ofNullable(genderRepository.findByName(userRequest.getGender().getName()))
+                    .orElseThrow(() -> new InvalidEntityException("Invalid gender: " + userRequest.getGender().getName()));
+            User newUser = new User();
+            newUser.setName(userRequest.getName());
+            newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+            newUser.setEmail(userRequest.getEmail());
+            newUser.setAge(userRequest.getAge());
+            newUser.setGender(gender);
+            newUser.setWeight(userRequest.getWeight());
+            newUser.setRole(roleRepository.findByName("USER"));
+            log.debug("Saving user: {}", newUser);
 
-        Gender gender = Optional.ofNullable(genderRepository.findByName(userRequest.getGender().getName()))
-                .orElseThrow(() -> new InvalidEntityException("Invalid gender: " + userRequest.getGender().getName()));
-
-
-        User newUser = new User();
-        newUser.setName(userRequest.getName());
-        newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        newUser.setEmail(userRequest.getEmail());
-        newUser.setAge(userRequest.getAge());
-        newUser.setGender(gender);
-        newUser.setWeight(userRequest.getWeight());
-        newUser.setRole(roleRepository.findByName("USER"));
-        log.debug("Saving user: {}", newUser);
-
-        return userRepository.save(newUser);
+            return userRepository.save(newUser);
     }
     @Override
     public User readUser(String email) {
@@ -93,14 +93,11 @@ public class UserServiceImpl implements UserService {
         Optional.ofNullable(user.getPassword())
                 .ifPresent(password -> existingUser.setPassword(passwordEncoder.encode(user.getPassword())));
         if (user.getGender() != null) {
-            try {
-                Gender existingGender = genderRepository.findByName(user.getGender().getName());
+            Gender existingGender = genderRepository.findByName(user.getGender().getName());
+            if(existingGender != null) {
                 existingUser.setGender(existingGender);
                 log.debug("Existing gender: {}", existingGender.getName());
-            } catch (InvalidEntityException e) {
-                log.error("Invalid user gender: {}", user.getGender().getName());
-                throw new InvalidEntityException("Invalid gender: " + user.getGender().getName());
-            }
+            } else throw new EntityNullException("Gender is not found");
         }
         if(user.getAge() > 0) existingUser.setAge(user.getAge());
         if(user.getWeight() > 0) existingUser.setWeight(user.getWeight());

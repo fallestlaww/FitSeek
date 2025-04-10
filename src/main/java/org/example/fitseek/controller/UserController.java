@@ -1,29 +1,27 @@
 package org.example.fitseek.controller;
 
 import io.jsonwebtoken.JwtException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.fitseek.config.jwt.JwtUtils;
 import org.example.fitseek.dto.request.UserRequest;
 import org.example.fitseek.dto.response.UserResponse;
 import org.example.fitseek.model.User;
-import org.example.fitseek.repository.UserRepository;
 import org.example.fitseek.service.UserService;
-import org.example.fitseek.service.impl.UserServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final UserService userService;
+    private final JwtUtils jwtUtils;
+
+    public UserController(UserService userService, JwtUtils jwtUtils) {
+        this.userService = userService;
+        this.jwtUtils = jwtUtils;
+    }
 
     @GetMapping
     public ResponseEntity<?> readUser(@RequestHeader("Authorization") String authHeader) {
@@ -39,15 +37,20 @@ public class UserController {
         }
     }
 
-    @PutMapping("/update/")
-    public ResponseEntity<?> updateUser(@RequestBody UserRequest user) {
-        if(user == null) {
-            log.warn("Requested user is null");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Requested user is null");
+    @PutMapping("/update")
+    public ResponseEntity<?> updateUser(@RequestHeader("Authorization") String authHeader,
+                                        @RequestBody UserRequest userRequest) {
+        try {
+            String token = authHeader.substring(7);
+            String email = jwtUtils.getEmailFromToken(token);
+            userRequest.setEmail(email);
+            User updatedUser = userService.updateUser(userRequest);
+            log.info("User updated: {}", updatedUser.getEmail());
+            return ResponseEntity.ok().body(updatedUser);
+        } catch (JwtException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        User updatedUser = userService.updateUser(user);
-        log.info("User updated: {}", updatedUser.getEmail());
-        return ResponseEntity.ok().body(updatedUser);
     }
 
     @DeleteMapping("/delete")
@@ -68,22 +71,14 @@ public class UserController {
 
     @GetMapping("/read/{id}")
     public ResponseEntity<?> readUserById(@PathVariable("id") long id) {
-        try {
-            User user = userService.readUserForAdmin(id);
-            return ResponseEntity.ok().body(user);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        User user = userService.readUserForAdmin(id);
+        return ResponseEntity.ok().body(user);
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteUserById(@PathVariable("id") long id) {
-        try {
-            userService.deleteUserForAdmin(id);
-            log.info("User deleted: {}", id);
-            return ResponseEntity.ok().body("Deleted successfully");
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        userService.deleteUserForAdmin(id);
+        log.info("User deleted: {}", id);
+        return ResponseEntity.ok().body("Deleted successfully");
     }
 }
