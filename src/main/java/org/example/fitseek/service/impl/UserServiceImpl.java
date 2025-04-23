@@ -13,7 +13,6 @@ import org.example.fitseek.repository.GenderRepository;
 import org.example.fitseek.repository.RoleRepository;
 import org.example.fitseek.repository.UserRepository;
 import org.example.fitseek.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -88,17 +87,21 @@ public class UserServiceImpl implements UserService {
             throw new EntityNullException("Requested user is null");
         }
         User existingUser = userRepository.findByEmail(user.getEmail());
+        if(existingUser == null) {
+            log.error("User with email {} not found", user.getEmail());
+            throw new EntityNotFoundException("User with email " + user.getEmail() + " does not exist");
+        }
         log.debug("Updating existing user: {}", existingUser.getEmail());
         Optional.ofNullable(user.getName()).ifPresent(existingUser::setName);
         Optional.ofNullable(user.getPassword())
                 .ifPresent(password -> existingUser.setPassword(passwordEncoder.encode(user.getPassword())));
-        if (user.getGender() != null) {
-            Gender existingGender = genderRepository.findByName(user.getGender().getName());
-            if(existingGender != null) {
-                existingUser.setGender(existingGender);
-                log.debug("Existing gender: {}", existingGender.getName());
-            } else throw new EntityNullException("Gender is not found");
-        }
+        Gender gender = Optional.ofNullable(user.getGender())
+                .map(g -> genderRepository.findByName(g.getName()))
+                .orElseThrow(() -> new InvalidEntityException("Invalid gender"));
+        if(gender != null) {
+            existingUser.setGender(gender);
+            log.debug("Existing gender: {}", gender.getName());
+        } else throw new EntityNullException("Gender is not found");
         if(user.getAge() > 0) existingUser.setAge(user.getAge());
         if(user.getWeight() > 0) existingUser.setWeight(user.getWeight());
         log.info("Existing user: {}", existingUser);
@@ -123,22 +126,7 @@ public class UserServiceImpl implements UserService {
     public User readUserForAdmin(Long id) {
         log.debug("Reading user: {}", id);
         Optional<User> userOptional = userRepository.findById(id);
-        User user = userOptional.orElseThrow(() -> new EntityNotFoundException("User not found"));
-        if (user == null) {
-            log.error("User with id {} not found", id);
-            throw new InvalidEntityException("User with id " + id + " does not exist");
-        }
-        return user;
-    }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Override
-    public void deleteUserForAdmin(Long id) {
-        log.debug("Deleting user: {}", id);
-        Optional<User> userOptional = userRepository.findById(id);
-        User user = userOptional.orElseThrow(() -> new EntityNotFoundException("User not found"));
-        userRepository.deleteById(id);
-        log.info("Deleted user: {}", user.getEmail());
+        return userOptional.orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
     @Override

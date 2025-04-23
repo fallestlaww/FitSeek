@@ -20,7 +20,7 @@ public class GenderServiceImpl implements GenderService {
     }
 
     @Override
-    public Gender chooseGender(GenderRequest genderRequest) {
+    public Gender getExerciseByGender(GenderRequest genderRequest) {
         log.debug("Requested gender: {}", Objects.toString(genderRequest, "null"));
         if(genderRequest == null || genderRequest.getName() == null || genderRequest.getName().isEmpty()) {
             log.warn("Gender request cannot be null");

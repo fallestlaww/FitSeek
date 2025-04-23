@@ -55,14 +55,19 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         log.info("Exercise: {}", exercise);
         Recommendation existingRecommendation = recommendationRepository
-                .getRecommendationByExerciseNameAndUserAgeAndUserWeight(
-                        exercise.getName(),
+                .getRecommendationByExerciseIdAndUserAgeAndUserWeight(
+                        recommendation.getExerciseId(),
                         recommendation.getUserAge(),
                         recommendation.getUserWeight());
 
         if (existingRecommendation == null) {
             log.warn("Recommendation not found");
             throw new EntityNotFoundException("Recommendation not found");
+        }
+
+        if(existingRecommendation.getId() == null) {
+            log.warn("Recommendation is null or empty");
+            throw new EntityNullException("Recommendation is null or empty");
         }
 
         if (recommendation.getUserAge() != existingRecommendation.getUserAge()) {
@@ -72,37 +77,37 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (recommendation.getUserWeight() != existingRecommendation.getUserWeight()) {
             existingRecommendation.setUserWeight(recommendation.getUserWeight());
         }
-        if (recommendation.getRecommendedRepeats() <= 0) {
+        if (recommendation.getRecommendedRepeats() > 0) {
             existingRecommendation.setRecommendedRepeats(recommendation.getRecommendedRepeats());
         }
-        if(recommendation.getRecommendedSets() <= 0) {
+        if(recommendation.getRecommendedSets() > 0) {
             existingRecommendation.setRecommendedSets(recommendation.getRecommendedSets());
         }
-        if(recommendation.getRecommendedWeightMin() <= 0) {
+        if(recommendation.getRecommendedWeightMin() > 0) {
             existingRecommendation.setRecommendedWeightMin(recommendation.getRecommendedWeightMin());
         }
-        if(recommendation.getRecommendedWeightMax() <= 0) {
+        if(recommendation.getRecommendedWeightMax() > 0) {
             existingRecommendation.setRecommendedWeightMax(recommendation.getRecommendedWeightMax());
         }
+        log.debug("Saving recommendation: {}", existingRecommendation);
         return recommendationRepository.save(existingRecommendation);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Override
-    public void deleteRecommendation(RecommendationRequest recommendation) {
-        log.debug("Deleting recommendation: {}", Objects.toString(recommendation, "null"));
-        if(recommendation == null) {
+    public void deleteRecommendation(RecommendationRequest recommendationRequest) {
+        if(recommendationRequest == null) {
             log.warn("Requested recommendation is null");
             throw new EntityNullException("Requested recommendation is null");
         }
-        Exercise exercise = exerciseRepository.findById(recommendation.getExerciseId())
+        Exercise exercise = exerciseRepository.findById(recommendationRequest.getExerciseId())
                 .orElseThrow(() -> new EntityNotFoundException("Exercise not found"));
         log.info("Exercise: {}", exercise.toString());
         Recommendation existingRecommendation = recommendationRepository
-                .getRecommendationByExerciseNameAndUserAgeAndUserWeight(
-                        exercise.getName(),
-                        recommendation.getUserAge(),
-                        recommendation.getUserWeight());
+                .getRecommendationByExerciseIdAndUserAgeAndUserWeight(
+                        recommendationRequest.getExerciseId(),
+                        recommendationRequest.getUserAge(),
+                        recommendationRequest.getUserWeight());
         if(existingRecommendation == null) {
             log.warn("Recommendation not found");
             throw new EntityNotFoundException("Recommendation not found");

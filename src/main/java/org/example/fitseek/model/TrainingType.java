@@ -3,8 +3,6 @@ package org.example.fitseek.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Entity

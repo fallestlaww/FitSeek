@@ -1,6 +1,7 @@
 package org.example.fitseek.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.example.fitseek.dto.request.ExerciseRequest;
 import org.example.fitseek.exception.exceptions.EntityNullException;
@@ -9,7 +10,6 @@ import org.example.fitseek.model.*;
 import org.example.fitseek.repository.*;
 import org.example.fitseek.service.ExerciseService;
 import org.example.fitseek.service.RecommendationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,6 @@ import java.util.*;
 @Slf4j
 @Service
 public class ExerciseServiceImpl implements ExerciseService {
-    @Autowired
     private ExerciseRepository exerciseRepository;
     private static final Map<Long, Integer> GROUPS_FOR_SPLIT = Map.of(1L,4,
             2L,4, 3L,4, 4L,3, 5L,3, 6L,3);
@@ -39,11 +38,12 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final DayRepository dayRepository;
     private final RecommendationService recommendationService;
 
-    public ExerciseServiceImpl(MuscleRepository muscleRepository, GenderRepository genderRepository, DayRepository dayRepository, RecommendationService recommendationService) {
+    public ExerciseServiceImpl(MuscleRepository muscleRepository, GenderRepository genderRepository, DayRepository dayRepository, RecommendationService recommendationService, ExerciseRepository exerciseRepository) {
         this.muscleRepository = muscleRepository;
         this.genderRepository = genderRepository;
         this.dayRepository = dayRepository;
         this.recommendationService = recommendationService;
+        this.exerciseRepository = exerciseRepository;
     }
 
     @Override
@@ -52,7 +52,12 @@ public class ExerciseServiceImpl implements ExerciseService {
         log.info("Grouped age for split: {}", ageGrouped);
         double weightGrouped = groupWeight(weight, genderId);
         log.info("Weight grouped for split: {}", weightGrouped);
-        return getFilteredExercises(ageGrouped, weightGrouped, genderId, GROUPS_FOR_SPLIT);
+        List<Exercise> exercises = getFilteredExercises(ageGrouped, weightGrouped, genderId, GROUPS_FOR_FULLBODY);
+        if(exercises.isEmpty()) {
+            log.info("Exercise list is empty");
+            throw new EntityNotFoundException("No exercise found");
+        }
+        return exercises;
     }
 
     @Override
@@ -61,12 +66,22 @@ public class ExerciseServiceImpl implements ExerciseService {
         log.info("Grouped age for fullbody: {}", ageGrouped);
         double weightGrouped = groupWeight(weight, genderId);
         log.info("Weight grouped for fullbody: {}", weightGrouped);
-        return getFilteredExercises(ageGrouped, weightGrouped, genderId, GROUPS_FOR_FULLBODY);
+        List<Exercise> exercises = getFilteredExercises(ageGrouped, weightGrouped, genderId, GROUPS_FOR_FULLBODY);
+        if(exercises.isEmpty()) {
+            log.info("Exercise list is empty");
+            throw new EntityNotFoundException("No exercise found");
+        }
+        return exercises;
     }
 
     @Override
     public List<Exercise> exerciseListForGender(Long genderId) {
-        return exerciseRepository.findByGenderId(genderId);
+        List<Exercise> exercises = exerciseRepository.findByGenderId(genderId);
+        if(exercises == null || exercises.isEmpty()) {
+            log.info("Exercise list is empty");
+            throw new EntityNotFoundException("Exercise not found");
+        }
+        return exercises;
     }
 
     @Override
@@ -89,13 +104,11 @@ public class ExerciseServiceImpl implements ExerciseService {
             throw new EntityNullException("Requested exercise is null");
         }
         Exercise existingExercise = exerciseRepository.findByName(exercise.getName());
-
         if(existingExercise == null) {
             log.warn("Exercise with name {} not found", exercise.getName());
             throw new EntityNotFoundException("Exercise with name " + exercise.getName() + " not found");
         }
 
-        Optional.ofNullable(exercise.getName()).ifPresent(existingExercise::setName);
         if(exercise.getMuscle() != null) {
             try {
                 Muscle muscle = muscleRepository.findByName(exercise.getMuscle().getName());
@@ -141,6 +154,7 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Override
+    @Transactional
     public void deleteExercise(String name) {
         log.debug("Deleting exercise {}", name);
         if(name == null || name.isEmpty()) {
@@ -156,7 +170,7 @@ public class ExerciseServiceImpl implements ExerciseService {
             log.info("Accepted muscleId: {}", muscleId);
             log.info("Accepted sets: {}", sets);
             for (int i = 0; i < sets; i++) {
-                exerciseRepository.findFirstByAgeAndWeightAndHeight(ageGrouped, weightGrouped, genderId, muscleId)
+                exerciseRepository.findFirstByAgeAndWeight(ageGrouped, weightGrouped, genderId, muscleId)
                         .stream()
                         .filter(exercise -> !exercises.contains(exercise))
                         .findAny()

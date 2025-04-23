@@ -4,7 +4,6 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -19,13 +18,13 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, e.getMessage());
     }
 
-    @ExceptionHandler({EntityNotFoundException.class, InvalidEntityException.class})
-    public ResponseEntity<Object> entityNotFoundException(Exception e) {
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Object> handleEntityNotFound(EntityNotFoundException e) {
         return buildResponse(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ExceptionHandler({InvalidRequestException.class, EntityNullException.class, Exception.class})
-    public ResponseEntity<Object> invalidRequestException(Exception e) {
+    @ExceptionHandler({InvalidRequestException.class, EntityNullException.class, InvalidEntityException.class, Exception.class})
+        public ResponseEntity<Object> invalidRequestException(Exception e) {
         return buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController()
-@RequestMapping("exercise/recommendation")
+@RequestMapping("/exercise/recommendation")
 public class RecommendationController {
     private final RecommendationService recommendationService;
     public RecommendationController(RecommendationService recommendationService) {
@@ -31,6 +31,6 @@ public class RecommendationController {
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteRecommendation(@RequestBody RecommendationRequest recommendation) {
         recommendationService.deleteRecommendation(recommendation);
-        return ResponseEntity.ok().body("Deleted successfully");
+        return ResponseEntity.ok().body(recommendationService.readRecommendation(recommendation.getExerciseId()));
     }
 }
