@@ -14,15 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @RestController()
 public class GenderController {
     private final GenderService genderService;
     private final ExerciseService exerciseService;
-    public final static String MALE_GENDER = "Male";
-    public final static String FEMALE_GENDER = "Female";
 
     public GenderController(ExerciseService exerciseService, GenderService genderService) {
         this.exerciseService = exerciseService;
@@ -31,13 +28,15 @@ public class GenderController {
 
     @PostMapping("/gender")
     public ResponseEntity<?> selectGender(@RequestBody GenderRequest genderRequest) {
-        log.debug("Requested gender: {}", Objects.toString(genderRequest, "null"));
-        Gender choosenGender = genderService.chooseGender(genderRequest);
+        log.debug("Requested gender: {}", genderRequest);
+        Gender choosenGender = genderService.getExerciseByGender(genderRequest);
         log.info("Chosen gender: {}", choosenGender.getName());
-        String genderName = choosenGender.getName().equalsIgnoreCase(MALE_GENDER) ? MALE_GENDER : FEMALE_GENDER;
+
+        String genderName = choosenGender.getName();
         List<Exercise> exercises = exerciseService.exerciseListForGender(choosenGender.getId());
         List<GenderResponse> genderResponses =
                 exercises.stream().map(exercise -> new GenderResponse(exercise, genderName)).toList();
+
         return ResponseEntity.status(HttpStatus.OK).body(genderResponses);
     }
 }

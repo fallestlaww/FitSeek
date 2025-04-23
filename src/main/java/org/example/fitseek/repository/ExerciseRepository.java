@@ -17,7 +17,7 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
             "WHERE r.user_age = :age AND r.user_weight = :weight " +
             "AND e.gender_id = :gender_id AND e.muscles_id = :muscle_id ",
             nativeQuery = true)
-    List<Exercise> findFirstByAgeAndWeightAndHeight(
+    List<Exercise> findFirstByAgeAndWeight(
             @Param("age") int age,
             @Param("weight") double weight,
             @Param("gender_id") Long genderId,

@@ -3,7 +3,6 @@ package org.example.fitseek.dto.response;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Value;
-import org.example.fitseek.model.Gender;
 import org.example.fitseek.model.User;
 
 @Value

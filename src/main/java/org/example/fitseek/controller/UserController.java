@@ -9,6 +9,7 @@ import org.example.fitseek.model.User;
 import org.example.fitseek.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -29,6 +30,9 @@ public class UserController {
             String token = authHeader.substring(7);
             String email = jwtUtils.getEmailFromToken(token);
             User user = userService.readUser(email);
+            if (email == null) {
+                throw new JwtException("Invalid email in JWT token");
+            }
             log.info("User for reading: {}", user.getEmail());
             return ResponseEntity.ok().body(new UserResponse(user));
         } catch (JwtException e) {
@@ -43,10 +47,13 @@ public class UserController {
         try {
             String token = authHeader.substring(7);
             String email = jwtUtils.getEmailFromToken(token);
+            if (email == null) {
+                throw new JwtException("Invalid email in JWT token");
+            }
             userRequest.setEmail(email);
             User updatedUser = userService.updateUser(userRequest);
             log.info("User updated: {}", updatedUser.getEmail());
-            return ResponseEntity.ok().body(updatedUser);
+            return ResponseEntity.ok().body(new UserResponse(updatedUser));
         } catch (JwtException e) {
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -75,9 +82,10 @@ public class UserController {
         return ResponseEntity.ok().body(user);
     }
 
+    @PreAuthorize("hasRole('')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteUserById(@PathVariable("id") long id) {
-        userService.deleteUserForAdmin(id);
+        userService.deleteUser(id);
         log.info("User deleted: {}", id);
         return ResponseEntity.ok().body("Deleted successfully");
     }
