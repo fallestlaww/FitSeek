@@ -12,6 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**<h4>Info</h4>
+ * REST-controller, responsible for processing CRUD-operations on {@link User} entity.
+ * <h4>Fields</h4>
+ * {@link #userService} object of {@link UserService} class, responsible for business logic to work with {@link User} entity.
+ * {@link #jwtUtils} object of {@link JwtUtils} class, responsible for business logic to work with JWT.
+ *
+ * @see UserService
+ * @see JwtUtils
+ */
 @Slf4j
 @RestController
 @RequestMapping("/user")
@@ -24,10 +33,17 @@ public class UserController {
         this.jwtUtils = jwtUtils;
     }
 
+    /**
+     * Gives out information about user, extracting that from the JWT, creating a so-called personal account
+     * @param authHeader header of HTTP-request from where method takes header "Authorization"
+     * @return {@link ResponseEntity} with a status code according to the result of the process execution and user information in response
+     */
     @GetMapping
     public ResponseEntity<?> readUser(@RequestHeader("Authorization") String authHeader) {
         try {
+            //removing prefix "Bearer " from JWT
             String token = authHeader.substring(7);
+            // extracting email from JWT
             String email = jwtUtils.getEmailFromToken(token);
             User user = userService.readUser(email);
             if (email == null) {
@@ -41,11 +57,18 @@ public class UserController {
         }
     }
 
+    /**
+     * Takes information about user extracted from the JWT and claims information to update actual user entity.
+     * @param authHeader header of HTTP-request from where method takes header "Authorization"
+     * @return {@link ResponseEntity} with a status code according to the result of the process execution and updated user information in response
+     */
     @PutMapping("/update")
     public ResponseEntity<?> updateUser(@RequestHeader("Authorization") String authHeader,
                                         @RequestBody UserRequest userRequest) {
         try {
+            //removing prefix "Bearer " from JWT
             String token = authHeader.substring(7);
+            // extracting email from JWT
             String email = jwtUtils.getEmailFromToken(token);
             if (email == null) {
                 throw new JwtException("Invalid email in JWT token");
@@ -60,10 +83,17 @@ public class UserController {
         }
     }
 
+    /**
+     * Takes information about user extracted from the JWT and deletes that user
+     * @param authHeader header of HTTP-request from where method takes header "Authorization"
+     * @return {@link ResponseEntity} with a status code according to the result of the process execution
+     */
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String authHeader) {
         try {
+            //removing prefix "Bearer " from JWT
             String token = authHeader.substring(7);
+            // extracting email from JWT
             String email = jwtUtils.getEmailFromToken(token);
             User user = userService.readUser(email);
             log.info("User for deleting: {}", user.getEmail());
@@ -76,13 +106,23 @@ public class UserController {
         }
     }
 
+    /**
+     * Takes id form URL, takes all information about user from database and give that information out, will work only if user has role "ADMIN"
+     * @param id represents user id in database
+     * @return {@link ResponseEntity} with a status code according to the result of the process execution and full user information
+     */
     @GetMapping("/read/{id}")
     public ResponseEntity<?> readUserById(@PathVariable("id") long id) {
         User user = userService.readUserForAdmin(id);
         return ResponseEntity.ok().body(user);
     }
 
-    @PreAuthorize("hasRole('')")
+    /**
+     * Takes id form URL and delete user by id from database, will work only if user has role "ADMIN"
+     * @param id represents user id in database
+     * @return {@link ResponseEntity} with a status code according to the result of the process execution
+     */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteUserById(@PathVariable("id") long id) {
         userService.deleteUser(id);

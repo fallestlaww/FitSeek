@@ -10,6 +10,25 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * <h4>Info</h4>
+ * Entity class that represents a training type in the application.
+ *
+ * Mapped to the {@code user} table in the database.
+ *
+ * <h4>Fields:</h4>
+ *     <li>{@link #id} – unique identifier of the user (primary key).</li>
+ *     <li>{@link #name} – name of the user (e.g. "user_user", "John").</li>
+ *     <li>{@link #password} - password of the user</li>
+ *     <li>{@link #email} - email of the user</li>
+ *     <li>{@link #age} - age of the user</li>
+ *     <li>{@link #weight} - weight of the user</li>
+ *     <li>{@link #gender} - object with name of the gender (e.g. "Male", "Female"</li>
+ *     <li>{@link #role} - object with name of the role (e.g. "USER", "ADMIN)</li>
+ *
+ * <h4>Implements</h4>
+ * <li>UserDetails - provides integration with Spring Security to work with user data</li>
+ */
 @Entity
 @Table(name = "users")
 @Getter

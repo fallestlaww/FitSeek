@@ -5,6 +5,14 @@ import lombok.*;
 
 import java.util.Objects;
 
+/**
+ * <h4>Info:</h4>
+ * Entity class that represents type of muscle for the exercise for the training system.
+ * Mapped to the {@code muscles} table in database
+ * <h4>Fields:</h4>
+ * <li>{@link #id} – unique identifier of the muscle (primary key).</li>
+ *  <li>{@link #name} – name of the muscle (e.g. "Chest", "Biceps").</li>
+ */
 @Entity
 @Table(name = "muscles")
 @Getter

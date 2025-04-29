@@ -23,6 +23,16 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
+/**
+ * <h4>Info</h4>
+ * Configuration class for definition rules of authorization and authentication.
+ * Enable web-security and work with HTTP-requests with JWT.
+ *
+ * @see UserService
+ * @see AuthEntryPoint
+ * @see PasswordEncoder
+ * @see CorsConfigurationSource
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -48,6 +58,10 @@ public class SecurityConfig {
         return authenticationManagerBuilder.build();
     }
 
+    /**
+     * Defines rules for correct CORS work and correct combination with front-end part
+     * @return CORS configuration object for all endpoints
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -61,6 +75,25 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * Connects and configures the security for the application.
+     * <p>
+     * This method:
+     * <ul>
+     *     <li>Enables CORS using the configuration defined in {@link SecurityConfig#corsConfigurationSource()}.</li>
+     *     <li>Disables CSRF protection (not required for stateless REST APIs).</li>
+     *     <li>Allows unauthenticated access to the <code>/register</code> and <code>/login</code> endpoints.</li>
+     *     <li>Requires authentication for all other endpoints.</li>
+     *     <li>Disables session creation by setting session policy to {@link SessionCreationPolicy#STATELESS} (no cookies).</li>
+     *     <li>Registers a custom {@link org.springframework.security.web.AuthenticationEntryPoint} for handling unauthorized access attempts.</li>
+     *     <li>Registers a custom JWT authentication filter before {@link UsernamePasswordAuthenticationFilter}.</li>
+     * </ul>
+     * After configuration, the resulting {@link SecurityFilterChain} is used by Spring Security to handle HTTP request security.
+     *
+     * @param http the {@link HttpSecurity} object used to configure the security settings
+     * @return the configured {@link SecurityFilterChain} bean
+     * @throws Exception in case of any configuration error
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

@@ -25,6 +25,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Implementation of service layer {@link UserService} for {@link User} entity.
+ * Provides logic for managing {@link UserService},
+ * including role-based access control for sensitive methods, namely {@link #readUserForAdmin(Long)}
+ */
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
@@ -54,6 +59,7 @@ public class UserServiceImpl implements UserService {
                 log.error("Invalid user request");
                 throw new InvalidRequestException("Invalid user request");
             }
+            //find in database gender by given gender name in request
             Gender gender = Optional.ofNullable(genderRepository.findByName(userRequest.getGender().getName()))
                     .orElseThrow(() -> new InvalidEntityException("Invalid gender: " + userRequest.getGender().getName()));
             User newUser = new User();
@@ -86,6 +92,7 @@ public class UserServiceImpl implements UserService {
             log.error("Requested user is null");
             throw new EntityNullException("Requested user is null");
         }
+        // find in database user by user email got from request, without existing user code can't update anything
         User existingUser = userRepository.findByEmail(user.getEmail());
         if(existingUser == null) {
             log.error("User with email {} not found", user.getEmail());
@@ -95,6 +102,7 @@ public class UserServiceImpl implements UserService {
         Optional.ofNullable(user.getName()).ifPresent(existingUser::setName);
         Optional.ofNullable(user.getPassword())
                 .ifPresent(password -> existingUser.setPassword(passwordEncoder.encode(user.getPassword())));
+        //find in database gender by given gender name in request
         Gender gender = Optional.ofNullable(user.getGender())
                 .map(g -> genderRepository.findByName(g.getName()))
                 .orElseThrow(() -> new InvalidEntityException("Invalid gender"));
@@ -131,13 +139,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // find user in database
         User user = userRepository.findByEmail(username);
         if(user == null) {
             log.error("User with user email {} not found", username);
             throw new EntityNotFoundException("User with email " + username + " not found");
         }
+        // group user roles into a list
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
         log.info("User authorities: {}", authorities);
+        // return object of user created specially for security
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
