@@ -12,7 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-
+/**
+ * Implementation of service layer {@link org.example.fitseek.service.TrainingTypeService} for {@link org.example.fitseek.model.TrainingType} entity.
+ * Provides logic for managing {@link TrainingTypeService},
+ */
 @Service
 @Slf4j
 public class TrainingTypeServiceImpl implements TrainingTypeService {
@@ -38,10 +41,12 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             throw new InvalidRequestException("Requested user training type is null");
         }
 
+        // defines user gender, if male -> return 1L, if not male -> return 2L
         Long genderId = userRequest.getGender().getName().equalsIgnoreCase(MALE_GENDER) ? 1L : 2L;
         log.info("Gender id: {}", genderId);
         List<Exercise> exercises;
 
+        // generate training program for user based on his age, weight and gender
         if (userRequest.getTrainingType().getName().equalsIgnoreCase(FULLBODY_TRAINING)) {
             exercises = exerciseService.exerciseListForFullBody(
                     userRequest.getAge(), userRequest.getWeight(), genderId);

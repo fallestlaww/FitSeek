@@ -19,6 +19,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
 
+/**<h4>Info</h4>
+ * REST-controller, responsible for processing operations on {@link org.example.fitseek.model.TrainingType}
+ * <h4>Fields</h4>
+ * {@link #trainingTypeServiceImpl} object of {@link TrainingTypeServiceImpl} class, responsible for business logic to work with {@link org.example.fitseek.model.TrainingType} entity.
+ * {@link #exerciseService} object of {@link org.example.fitseek.service.ExerciseService} class, responsible for business logic to work with {@link Exercise} entity.
+ * {@link #FULLBODY_TRAINING} and {@link #SPLIT_TRAINING} constants to avoid repeating names of training types
+ *
+ * @see ExerciseService
+ * @see TrainingTypeServiceImpl
+ */
 @Slf4j
 @RestController
 public class TrainingController {
@@ -32,6 +42,11 @@ public class TrainingController {
         this.trainingTypeServiceImpl = trainingTypeServiceImpl;
     }
 
+    /**
+     * Gives out an information about both type of trainings, so split, as full body
+     * @param trainingTypeRequest object with a requested training type name from user
+     * @return {@link ResponseEntity} with a status code according to the result of the process execution and response with information about training type
+     */
     @PostMapping("/training-type/information")
     public ResponseEntity<?> trainingType(@RequestBody TrainingTypeRequest trainingTypeRequest) {
         log.debug("Requested training type {}", Objects.toString(trainingTypeRequest, "null"));
@@ -45,6 +60,7 @@ public class TrainingController {
             throw new InvalidRequestException("Requested training type name is not valid");
         }
 
+        // generate a response list for appropriate training type
         if(trainingTypeRequest.getName().equalsIgnoreCase(SPLIT_TRAINING)) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new TrainingTypeResponse(trainingTypeRequest.getName(), "Enter your age, weight and height below"
@@ -59,11 +75,17 @@ public class TrainingController {
         }
     }
 
+    /**
+     * Gives out a list of exercise according to the training type user choose, list of exercise formed for both type of trainings, so split, as full body
+     * @param userRequest object with a requested user age, user weight, user gender name and training type name from user
+     * @return {@link ResponseEntity} with a status code according to the result of the process execution and response with list of exercise formed especially for user
+     */
     @PostMapping("/training-type/exercises")
     public ResponseEntity<?> trainingTypeExercises(@RequestBody UserInformationRequest userRequest) {
         List<Exercise> exercises = trainingTypeServiceImpl.trainingTypeExercises(userRequest);
         List<?> exerciseResponses;
 
+        // generate a response list from that exercise list, which we got from service layer
         if (userRequest.getTrainingType().getName().equalsIgnoreCase(FULLBODY_TRAINING)) {
             log.info("Exercise added to full body training: {}", exercises.toString());
             exerciseResponses = exercises.stream().map(ExerciseResponseFullbody::new).toList();
@@ -71,6 +93,7 @@ public class TrainingController {
             log.info("Exercise added to split training: {}", exercises.toString());
             exerciseResponses = exercises.stream().map(ExerciseResponseSplit::new).toList();
         } else {
+            // if training type name is incorrect in request, that will be thrown appropriate status code
             log.warn("Invalid training type {}", userRequest.getTrainingType().getName());
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Invalid training type");
         }

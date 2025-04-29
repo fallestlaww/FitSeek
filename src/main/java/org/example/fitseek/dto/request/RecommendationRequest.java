@@ -6,6 +6,22 @@ import lombok.*;
 
 import javax.validation.constraints.Min;
 
+/**
+ * <h4>Info</h4>
+ * Realization of class, which is using for creating requests for CRUD operations for {@link org.example.fitseek.model.Recommendation} entity.
+ * Using for transferring data between user and backend in JSON format.
+ * The field naming format corresponds to "snake_case".
+ * <h4>Fields</h4>
+ * {@link #exerciseId} represents the ID of the exercise whose recommendations the user wants to work with.
+ * {@link #userAge} represents user age.
+ * {@link #userWeight} represents user weight.
+ * {@link #recommendedSets} represents recommended number of sets for exercise.
+ * {@link #recommendedRepeats} represents recommended number of repeats for exercise.
+ * {@link #recommendedWeightMin} represents recommended min weight for exercise.
+ * {@link #recommendedWeightMax} represents recommended max weight for exercise.
+ *
+ * @see org.example.fitseek.model.Recommendation
+ */
 @Getter
 @Setter
 @ToString

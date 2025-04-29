@@ -6,6 +6,21 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Objects;
 
+/**
+ * <h4>Info</h4>
+ * Entity class that represents a user's role in the application.
+ *
+ * Mapped to the {@code roles} table in the database.
+ *
+ * <h4>Fields:</h4>
+ *     <li>{@link #id} – unique identifier of the role (primary key).</li>
+ *     <li>{@link #name} – name of the role (e.g. "ADMIN", "USER").</li>
+ *
+ * <h4>Implements:</h4>
+ *     <li>{@link GrantedAuthority} – provides integration with Spring Security for role-based access control.</li>
+ * @see org.springframework.security.core.GrantedAuthority
+ */
+
 @Getter
 @Setter
 @Entity

@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Centralized exception handler for all REST-controllers in system.
+ * Catches and handles custom and common exceptions, converting them into HTTP responses.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -33,6 +37,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
+    /**
+     * Builds response for every exception using HTTP status, made to reduce repetition in code
+     * @param status HTTP status to be thrown
+     * @param message message to return, often is exception message
+     * @return {@link ResponseEntity} with a status code and message according to the parameters
+     */
     private ResponseEntity<Object> buildResponse(HttpStatus status, String message) {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("status", status.value());

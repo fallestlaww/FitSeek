@@ -8,7 +8,7 @@ import org.example.fitseek.dto.request.UserRequest;
 import org.example.fitseek.exception.exceptions.EntityAlreadyExistsException;
 import org.example.fitseek.exception.exceptions.InvalidRequestException;
 import org.example.fitseek.model.Gender;
-import org.example.fitseek.model.LoginRequest;
+import org.example.fitseek.dto.request.LoginRequest;
 import org.example.fitseek.model.User;
 import org.example.fitseek.service.impl.ExerciseServiceImpl;
 import org.example.fitseek.service.impl.UserServiceImpl;

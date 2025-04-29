@@ -9,6 +9,19 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+/**
+ * <h4>Info:</h4>
+ * Entity class that represents recommendation for the exercise for the training system.
+ * Mapped to the {@code recommendations} table in database
+ *
+ * <li>{@link #id} – unique identifier of the recommendation (primary key).</li>
+ * <li>{@link #userAge} - given user age</li>
+ * <li>{@link #userWeight} - given user weight</li>
+ * <li>{@link #recommendedSets} - recommended sets for the exercise based on user age and weight</li>
+ * <li>{@link #recommendedRepeats} - recommended repeats for the exercise based on user age and weight</li>
+ * <li>{@link #recommendedWeightMin} - recommended minimal weight for the exercises based on user age and weight</li>
+ * <li>{@link #recommendedWeightMax} - recommended maximal weight for the exercises based on user age and weight</li>
+ */
 @Entity
 @Table(name = "recommendations")
 @Getter

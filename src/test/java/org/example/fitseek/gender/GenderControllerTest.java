@@ -134,7 +134,7 @@ public class GenderControllerTest {
 
     @Test
     public void selectGenderSuccess() throws Exception {
-        when(genderService.getExerciseByGender(any(GenderRequest.class))).thenReturn(gender);
+        when(genderService.getGenderByName(any(GenderRequest.class))).thenReturn(gender);
         when(exerciseService.exerciseListForGender(gender.getId())).thenReturn(List.of(exercise));
 
         mockMvc.perform(post("/gender")
@@ -147,7 +147,7 @@ public class GenderControllerTest {
 
     @Test
     public void selectGenderFailureBadGenderName() throws Exception {
-        when(genderService.getExerciseByGender(any(GenderRequest.class))).thenThrow(EntityNotFoundException.class);
+        when(genderService.getGenderByName(any(GenderRequest.class))).thenThrow(EntityNotFoundException.class);
 
         mockMvc.perform(post("/gender")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -157,7 +157,7 @@ public class GenderControllerTest {
 
     @Test
     public void selectGenderFailureRequestNull() throws Exception {
-        when(genderService.getExerciseByGender(null)).thenThrow(EntityNullException.class);
+        when(genderService.getGenderByName(null)).thenThrow(EntityNullException.class);
 
         mockMvc.perform(post("/gender")
                 .contentType(MediaType.APPLICATION_JSON)
