@@ -37,7 +37,7 @@ public class GenderServiceTest {
     @Test
     public void chooseGenderSuccessful() {
         when(genderRepository.findByName(genderRequest.getName())).thenReturn(gender);
-        Gender foundGender = genderService.getExerciseByGender(genderRequest);
+        Gender foundGender = genderService.getGenderByName(genderRequest);
 
         Assertions.assertEquals(gender, foundGender);
     }
@@ -46,12 +46,12 @@ public class GenderServiceTest {
     public void chooseGenderFailedRequestIsNull() {
         genderRequest.setName(null);
 
-        Assertions.assertThrows(EntityNullException.class, () -> genderService.getExerciseByGender(genderRequest));
+        Assertions.assertThrows(EntityNullException.class, () -> genderService.getGenderByName(genderRequest));
     }
 
     @Test
     public void chooseGenderFailedWrongGenderName() {
         when(genderRepository.findByName(genderRequest.getName())).thenReturn(null);
-        Assertions.assertThrows(EntityNotFoundException.class, () -> genderService.getExerciseByGender(genderRequest));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> genderService.getGenderByName(genderRequest));
     }
 }
