@@ -29,6 +29,6 @@ Second way - frontend + backend. You can start your frontend part on 3000 port a
 ## Ending
 As for me, there is no point in adding more code, but if you want - you have every right to do so, if you find bugs - let me know, I will be happy to fix everything.
 
-My telegram: @keepmewhoiam,
-Link for this repository: https://github.com/fallestlaww/FitSeek.git,
+My telegram: @keepmewhoiam,  
+Link for this repository: https://github.com/fallestlaww/FitSeek.git,  
 My LinkedIn: [link](https://www.linkedin.com/in/pavlo-svitenko-a167152bb/).
